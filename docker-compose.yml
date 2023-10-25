@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  fwportal_ics:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - FWPORTAL_USER=${FWPORTAL_USER}
+      - FWPORTAL_PASSWORD=${FWPORTAL_PASSWORD}
+
+    volumes:
+      - ./data:/fwportal-ics/data:rw

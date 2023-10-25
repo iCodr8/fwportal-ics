@@ -1,0 +1,44 @@
+{
+  "name": "fwportal-ics",
+  "version": "1.0.0",
+  "description": "Parse ics file from FWportal appointments.",
+  "main": "src/index.js",
+  "scripts": {
+    "prestart": "npm run lint",
+    "start": "npx ts-node src/generate-ics-file.ts",
+    "healthcheck": "npx ts-node src/healthcheck.ts",
+    "lint": "eslint . --ext .ts --fix",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/iCodr8/fwportal-ics.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.4",
+    "date-fns": "^2.30",
+    "dotenv": "^16.3",
+    "mkdirp": "^3.0",
+    "ncp": "^2.0",
+    "request": "^2.88",
+    "rimraf": "^5.0",
+    "rxjs": "^7.8",
+    "ts-node": "^10.9"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8",
+    "@types/date-fns": "^2.6",
+    "@types/mkdirp": "^2.0",
+    "@types/ncp": "^2.0",
+    "@types/node": "^18.18",
+    "@types/request": "^2.48",
+    "@types/rimraf": "^4.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "eslint": "^8.50.0",
+    "typescript": "^5.2"
+  }
+}
