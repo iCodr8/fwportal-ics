@@ -8,6 +8,9 @@ services:
     environment:
       - FWPORTAL_USER=${FWPORTAL_USER}
       - FWPORTAL_PASSWORD=${FWPORTAL_PASSWORD}
+      - FWPORTAL_DEVICE_ID=${FWPORTAL_DEVICE_ID}
+      - FWPORTAL_FWMOBILE_VERSION=${FWPORTAL_FWMOBILE_VERSION}
+      - DEBUG=${DEBUG}
 
     volumes:
       - ./data:/fwportal-ics/data:rw

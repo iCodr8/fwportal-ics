@@ -1,12 +1,17 @@
-FROM node:18
+FROM nginx:bookworm
 
 USER root
 
 ENV FWPORTAL_USER=''
-ENV FWPORTAL_PWASSWORD=''
+ENV FWPORTAL_PASSWORD=''
+ENV FWPORTAL_DEVICE_ID=''
+ENV FWPORTAL_DIENSTSTELLEN=''
+ENV FWPORTAL_FWMOBILE_VERSION=''
+ENV DEBUG=false
 ENV TZ=Europe/Berlin
 
 RUN apt-get update -yqq
+RUN apt-get install nodejs npm cron -yqq
 
 RUN mkdir -p /fwportal-ics/
 WORKDIR /fwportal-ics
@@ -14,19 +19,22 @@ WORKDIR /fwportal-ics
 COPY package*.json ./
 RUN npm install
 
-COPY . .
+COPY src src
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN mkdir -p /fwportal-ics/data/
 RUN chmod +rwx /fwportal-ics/data/
 
-RUN apt-get install -yqq --no-install-recommends \
-    ca-certificates \
-    bzip2 \
-    curl \
-    libfontconfig
-
 HEALTHCHECK --interval=1m --timeout=20s CMD [ "npm", "run", "healthcheck" ]
 
-CMD [ "npm", "start" ]
+RUN echo '* * * * * root cd /fwportal-ics && npm start > /proc/1/fd/1 2>&1' > /etc/cron.d/fwportal-ics && \
+    chmod 0644 /etc/cron.d/fwportal-ics && \
+    crontab /etc/cron.d/fwportal-ics && \
+    echo '#!/bin/bash\n\ncron && /docker-entrypoint.sh "$@"' >> /entrypoint-wrapper.sh && \
+    chmod +x /entrypoint-wrapper.sh
+
+ENTRYPOINT ["/entrypoint-wrapper.sh"]
+
+CMD ["nginx", "-g", "daemon off;"]

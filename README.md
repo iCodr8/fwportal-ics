@@ -18,6 +18,10 @@ services:
     environment:
       - FWPORTAL_USER=''
       - FWPORTAL_PASSWORD=''
+      - FWPORTAL_DEVICE_ID='random uuid'
+      - FWPORTAL_DIENSTSTELLEN=''
+      - FWPORTAL_FWMOBILE_VERSION='4.1.2'
+      - DEBUG=false
     volumes:
       - ./data:/fwportal-ics/data:rw
 ```
