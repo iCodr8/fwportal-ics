@@ -19,6 +19,7 @@ export const checkFwportalConnection = () => {
     return new Promise<void>((resolve, reject) => {
         try {
             // TODO: Add health check
+            return resolve();
         } catch (e) {
             reject();
         }

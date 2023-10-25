@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    image: 'icodr8/fwportal_ics:latest'
     environment:
       - FWPORTAL_USER=${FWPORTAL_USER}
       - FWPORTAL_PASSWORD=${FWPORTAL_PASSWORD}
@@ -13,4 +14,7 @@ services:
       - DEBUG=${DEBUG}
 
     volumes:
-      - ./data:/fwportal-ics/data:rw
+      - fwportal-ics-data:/fwportal-ics/data:rw
+
+volumes:
+  fwportal-ics-data: {}
