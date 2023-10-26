@@ -21,7 +21,7 @@ export type Configuration = {
     fwportalUser: string;
     fwportalPassword: string;
     fwportalDeviceId: string;
-    fwportalDienststellen: number[];
+    fwportalDienststellen: string[];
     fwportalFwmobileVersion: string;
     debug: boolean;
     dataPath: string;
@@ -53,7 +53,7 @@ class GenerateIcsFile {
         }
     });
 
-    private appointments: Record<number, Appointment[]> = {};
+    private appointments: Record<number, {name: string, data: Appointment[]}> = {};
 
     constructor() {
         // Load dotenv configuration
@@ -72,7 +72,7 @@ class GenerateIcsFile {
             : this.configuration.fwportalDeviceId;
 
         this.configuration.fwportalDienststellen = process.env.FWPORTAL_DIENSTSTELLEN
-            ? process.env.FWPORTAL_DIENSTSTELLEN?.split(',')?.map((id) => Number(id))
+            ? process.env.FWPORTAL_DIENSTSTELLEN?.split(',')?.map((idOrIdWithName) => idOrIdWithName)
             : this.configuration.fwportalDienststellen;
 
         this.configuration.fwportalFwmobileVersion = process.env.FWPORTAL_FWMOBILE_VERSION
@@ -105,18 +105,25 @@ class GenerateIcsFile {
         this.log(`Lade Dienste (${this.configuration.fwportalDienststellen.join(', ')})`);
 
         return Promise.all(
-            this.configuration.fwportalDienststellen.map((id: number) => this.loadAppointmentsByDepartment(id))
+            this.configuration.fwportalDienststellen.map((idOrIdWithName: string) => {
+                const [id, name] = idOrIdWithName.split('|');
+
+                return this.loadAppointmentsByDepartment(Number(id), name ?? id)
+            })
         );
     }
 
-    async loadAppointmentsByDepartment(departmentId: number) {
+    async loadAppointmentsByDepartment(departmentId: number, departmentName: string) {
         const currentYear = new Date().getFullYear();
         this.log(`Lade Dienste für #${departmentId}`);
 
         return this.http.get<Appointment[]>(`/v2/GetDienste?id=${departmentId}&Jahr=${currentYear}&Monat=-1`)
             .then((response) => {
                 this.log(`Dienste für #${departmentId} erfolgreich geladen`, 'success');
-                this.appointments[departmentId] = response.data;
+                this.appointments[departmentId] = {
+                    data: response.data,
+                    name: departmentName ?? departmentId?.toString()
+                };
             })
             .catch(() => {
                 this.log(`Dienste für #${departmentId} konnten nicht geladen werden!`, 'error');
@@ -126,7 +133,7 @@ class GenerateIcsFile {
     async generateIcsFiles() {
         this.log('Dateien erzeugen');
 
-        Object.entries(this.appointments).forEach(([departmentId, appointments]) => {
+        Object.entries(this.appointments).forEach(([departmentId, {name: departmentName, data: appointments}]) => {
             const {error, value} = ics.createEvents(
                 appointments.map(
                     (appointment) => {
@@ -149,7 +156,7 @@ class GenerateIcsFile {
                 return
             }
 
-            fs.writeFileSync(`${this.configuration.dataPath}/${departmentId}.ics`, value);
+            fs.writeFileSync(`${this.configuration.dataPath}/${departmentName ?? departmentId}.ics`, value);
             this.log(`Datei für #${departmentId} wurde erzeugt`, 'success');
         });
     }
