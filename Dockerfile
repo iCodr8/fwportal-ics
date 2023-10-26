@@ -20,6 +20,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY src src
+COPY .eslint* ./
+COPY tsconfig.json ./
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -30,7 +32,7 @@ RUN chmod +rwx /fwportal-ics/data/
 HEALTHCHECK --interval=1m --timeout=20s CMD [ "npm", "run", "healthcheck" ]
 
 # Run cron every hour
-RUN echo '0 * * * * root cd /fwportal-ics && npm start > /proc/1/fd/1 2>&1' > /etc/cron.d/fwportal-ics && \
+RUN echo '*/30 * * * * root cd /fwportal-ics && npm start > /proc/1/fd/1 2>&1' > /etc/cron.d/fwportal-ics && \
     chmod 0644 /etc/cron.d/fwportal-ics && \
     crontab /etc/cron.d/fwportal-ics && \
     echo '#!/bin/bash\n\ncron && /docker-entrypoint.sh "$@"' >> /entrypoint-wrapper.sh && \

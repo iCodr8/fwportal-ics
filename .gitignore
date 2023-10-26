@@ -41,7 +41,7 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
-.env.prod
+.env.*
 .env
 
 # System Files

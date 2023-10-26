@@ -22,8 +22,12 @@ services:
       - FWPORTAL_DIENSTSTELLEN=''
       - FWPORTAL_FWMOBILE_VERSION='4.1.2'
       - DEBUG=false
+    ports:
+      - "8888:80"
     volumes:
       - ./data:/fwportal-ics/data:rw
 ```
 
 After that you can run the container with `docker-compose up -d` command.
+
+And get the ics files with http://localhost:8888
