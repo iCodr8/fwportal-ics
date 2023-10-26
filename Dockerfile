@@ -33,7 +33,7 @@ HEALTHCHECK --interval=1m --timeout=20s CMD [ "npm", "run", "healthcheck" ]
 
 # Run cron every hour
 COPY docker/entrypoint-wrapper.sh /entrypoint-wrapper.sh
-RUN echo '*/15 * * * * root . /root/env.sh; cd /fwportal-ics && npm start > /proc/1/fd/1 2>&1' > /etc/cron.d/fwportal-ics && \
+RUN echo '*/15 * * * * root cd /fwportal-ics && npm start > /proc/1/fd/1 2>&1' > /etc/cron.d/fwportal-ics && \
     chmod 0644 /etc/cron.d/fwportal-ics && \
     crontab /etc/cron.d/fwportal-ics && \
     chmod +x /entrypoint-wrapper.sh
