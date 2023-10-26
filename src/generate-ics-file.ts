@@ -1,7 +1,7 @@
 import {black, white, yellow} from 'colors';
 import {config} from 'dotenv';
 import process from 'process';
-import axios from "axios";
+import axios, {AxiosInstance} from "axios";
 import * as fs from "fs";
 import * as ics from "ics";
 
@@ -40,18 +40,7 @@ class GenerateIcsFile {
 
     private fwportalApiUrl = 'https://live.fwportal.de/webapi'
 
-    private http = axios.create({
-        baseURL: this.fwportalApiUrl,
-        headers: {
-            'Host': 'live.fwportal.de',
-            'Connection': 'keep-alive',
-            'fwmobile_version': '4.1.2',
-            'Accept': '*/*',
-            'Accept-Language': 'de-DE,de;q=0.9',
-            'Content-Type': 'application/json; charset=utf-8',
-            'User-Agent': 'FWmobile/165 CFNetwork/1474 Darwin/23.0.0'
-        }
-    });
+    private http: AxiosInstance;
 
     private appointments: Record<number, {name: string, data: Appointment[]}> = {};
 
@@ -80,6 +69,19 @@ class GenerateIcsFile {
             : this.configuration.fwportalFwmobileVersion;
 
         this.configuration.debug = process.env.DEBUG === 'true';
+
+        this.http = axios.create({
+            baseURL: this.fwportalApiUrl,
+            headers: {
+                'Host': 'live.fwportal.de',
+                'Connection': 'keep-alive',
+                'fwmobile_version': this.configuration.fwportalFwmobileVersion,
+                'Accept': '*/*',
+                'Accept-Language': 'de-DE,de;q=0.9',
+                'Content-Type': 'application/json; charset=utf-8',
+                'User-Agent': 'FWmobile/165 CFNetwork/1474 Darwin/23.0.0'
+            }
+        });
     }
 
     async init() {
