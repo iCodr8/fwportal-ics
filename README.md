@@ -19,8 +19,8 @@ services:
       - FWPORTAL_USER=''
       - FWPORTAL_PASSWORD=''
       - FWPORTAL_DEVICE_ID='random uuid'
-      - FWPORTAL_DIENSTSTELLEN=''
-      - FWPORTAL_FWMOBILE_VERSION='4.1.2'
+      - FWPORTAL_DIENSTSTELLEN='dienststelle1ID|name_klein_und_ohne_sonderzeichen_1,dienststelle2ID.dienststelle3ID|name_klein_und_ohne_sonderzeichen_2'
+      - FWPORTAL_FWMOBILE_VERSION='4.2.1'
       - DEBUG=false
     ports:
       - "8888:80"

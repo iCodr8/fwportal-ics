@@ -42,7 +42,7 @@ class GenerateIcsFile {
 
     private http: AxiosInstance;
 
-    private appointments: Record<number, {name: string, data: Appointment[]}> = {};
+    private appointments: Record<string, { data: Appointment[] }> = {};
 
     constructor() {
         // Load dotenv configuration
@@ -106,16 +106,18 @@ class GenerateIcsFile {
     async loadAppointments() {
         this.log(`Lade Dienste (${this.configuration.fwportalDienststellen.join(', ')})`);
 
-        return Promise.all(
-            this.configuration.fwportalDienststellen.map((idOrIdWithName: string) => {
-                const [id, name] = idOrIdWithName.split('|');
+        const allIds = this.configuration.fwportalDienststellen.map((nameAndIds: string) => {
+            const ids = nameAndIds.split('|')[1];
 
-                return this.loadAppointmentsByDepartment(Number(id), name ?? id)
-            })
-        );
+            return ids.split('.').map((id) => Number(id));
+        }).flat();
+
+        const uniqueIds = allIds.filter((value, index, array) => array.indexOf(value) === index);
+
+        return Promise.all(uniqueIds.map((id) => this.loadAppointmentsByDepartment(id)));
     }
 
-    async loadAppointmentsByDepartment(departmentId: number, departmentName: string) {
+    async loadAppointmentsByDepartment(departmentId: number) {
         const currentYear = new Date().getFullYear();
         this.log(`Lade Dienste für #${departmentId}`);
 
@@ -124,7 +126,6 @@ class GenerateIcsFile {
                 this.log(`Dienste für #${departmentId} erfolgreich geladen`, 'success');
                 this.appointments[departmentId] = {
                     data: response.data,
-                    name: departmentName ?? departmentId?.toString()
                 };
             })
             .catch(() => {
@@ -135,7 +136,29 @@ class GenerateIcsFile {
     async generateIcsFiles() {
         this.log('Dateien erzeugen');
 
-        Object.entries(this.appointments).forEach(([departmentId, {name: departmentName, data: appointments}]) => {
+        this.configuration.fwportalDienststellen.map((nameAndIds: string) => {
+            const [departmentName, idsString] = nameAndIds.split('|');
+            const ids = idsString.split('.').map((id) => Number(id));
+            const appointments = ids.flatMap((id) => this.appointments[id]?.data)
+                .sort((a, b) => {
+                    if (a.Ende > b.Ende) {
+                        return 1;
+                    } else if (a.Ende < b.Ende) {
+                        return -1;
+                    }
+
+                    return 0;
+                })
+                .sort((a, b) => {
+                    if (a.Start > b.Start) {
+                        return 1;
+                    } else if (a.Start < b.Start) {
+                        return -1;
+                    }
+
+                    return 0;
+                });
+
             const {error, value} = ics.createEvents(
                 appointments.map(
                     (appointment) => {
@@ -153,13 +176,13 @@ class GenerateIcsFile {
             );
 
             if (error) {
-                this.log(`ics Datei für #${departmentId} konnte nicht erzeugt werden!`, 'error');
+                this.log(`ics Datei für #${departmentName} konnte nicht erzeugt werden!`, 'error');
 
                 return
             }
 
-            fs.writeFileSync(`${this.configuration.dataPath}/${departmentName ?? departmentId}.ics`, value);
-            this.log(`Datei für #${departmentId} wurde erzeugt`, 'success');
+            fs.writeFileSync(`${this.configuration.dataPath}/${departmentName}.ics`, value);
+            this.log(`Datei für #${departmentName} wurde erzeugt`, 'success');
         });
     }
 
